@@ -68,6 +68,10 @@ class CogniteAdapter:
     ) -> tuple[list[dict[str, Any]], str | None]:
         self._optmizer.optimize(statement)
         cognite_query = self._query_mapper.map(statement)
+        print("================================\n")
+        import json
+        print(json.dumps(cognite_query.dump(), indent=2, default=str))
+        print("\n================================")
         view_external_id = statement.entity.get_view_external_id()
 
         data: list[dict[str, Any]] = []

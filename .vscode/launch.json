@@ -7,7 +7,9 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-        "${relativeFileDirname}"
+        "${relativeFileDirname}",
+        "-k",
+        "something"
       ],
       "justMyCode": true
     }

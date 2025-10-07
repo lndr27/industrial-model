@@ -62,18 +62,24 @@ class QueryMapper:
 
         relations = get_schema_properties(statement.entity, NESTED_SEP, root_node)
 
-        if statement._values.pre_clause:
+        if pre_clause := statement_values.pre_clause:
+            prop = root_view.properties[pre_clause[0].property]
+            assert isinstance(prop, EdgeConnection)
+            edge_view = self._view_mapper.get_view(prop.source.external_id)
             with_["pre"] = EdgeResultSetExpression(
-                filter=filters.And(
-                    *self._filter_mapper.map(statement_values.pre_clause, root_view)
+                filter=filters.Equals(["edge", "type"], prop.type.dump()),
+                direction=prop.direction,
+                node_filter=filters.And(
+                    *self._filter_mapper.map(pre_clause[1], edge_view)
                 ),
-                node_filter=...,
             )
 
             root_with = with_[root_node]
             assert isinstance(root_with, NodeResultSetExpression)
             root_with.from_ = "pre"
-            root_with.chain_to = "source"
+            root_with.chain_to = (
+                "source" if prop.direction == "inwards" else "destination"
+            )
 
         edge_filters = self._filter_mapper.map_edges(
             statement_values.where_edge_clauses, root_view, NESTED_SEP
