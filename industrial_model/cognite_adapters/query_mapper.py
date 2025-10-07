@@ -57,9 +57,23 @@ class QueryMapper:
                 limit=statement_values.limit,
             )
         }
+
         select_: dict[str, Select] = {}
 
         relations = get_schema_properties(statement.entity, NESTED_SEP, root_node)
+
+        if statement._values.pre_clause:
+            with_["pre"] = EdgeResultSetExpression(
+                filter=filters.And(
+                    *self._filter_mapper.map(statement_values.pre_clause, root_view)
+                ),
+                node_filter=...,
+            )
+
+            root_with = with_[root_node]
+            assert isinstance(root_with, NodeResultSetExpression)
+            root_with.from_ = "pre"
+            root_with.chain_to = "source"
 
         edge_filters = self._filter_mapper.map_edges(
             statement_values.where_edge_clauses, root_view, NESTED_SEP
@@ -93,6 +107,9 @@ class QueryMapper:
         with_: dict[str, ResultSetExpression],
         select_: dict[str, Select],
     ) -> list[str]:
+        """
+        Side-effects on with_ and select_
+        """
         if not relations_to_include:
             return []
 

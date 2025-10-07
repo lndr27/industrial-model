@@ -7,6 +7,7 @@ from pydantic import Field
 from industrial_model import (
     ViewInstance,
 )
+from industrial_model.models.entities import InstanceId
 
 
 class CogniteDescribable(ViewInstance):
@@ -31,3 +32,11 @@ class CogniteAsset(CogniteDescribable):
     path: list[CogniteAsset] = Field(default_factory=list)
     type: CogniteAssetType | None = None
     equipment: list[CogniteEquipment] = Field(default_factory=list)
+
+
+class FunctionalLocation(CogniteDescribable):
+    reporting_units: list[InstanceId] | None = None
+
+
+class ReportingUnit(ViewInstance):
+    reporting_site: InstanceId | None = None

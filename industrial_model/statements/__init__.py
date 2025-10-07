@@ -28,6 +28,8 @@ class BaseStatementValues:
     where_edge_clauses: list[tuple[Column, list[Expression]]] = field(
         init=False, default_factory=list
     )
+    pre_clause: tuple[Column, list[Expression]] | None = field(init=False, default=None)
+
     sort_clauses: list[tuple[Column, SORT_DIRECTION]] = field(
         init=False, default_factory=list
     )
@@ -78,6 +80,23 @@ class BaseStatement(Generic[T]):
 class Statement(BaseStatement[T]):
     def cursor(self, cursor: str | None) -> Self:
         self._values.cursor = cursor
+        return self
+
+    def pre_filter(
+        self, property: str | Column | Any, *expressions: bool | Expression
+    ) -> Self:
+        if self._values.pre_clause:
+            raise ValueError("FOooooooooooo!!")
+
+        expressions_: list[Expression] = []
+        for expression in expressions:
+            assert isinstance(expression, Expression)
+            expressions_.append(expression)
+
+        self._values.pre_clause = (
+            _create_column(property),
+            expressions_,
+        )
         return self
 
     def where_edge(
