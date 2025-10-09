@@ -93,6 +93,7 @@ def test_something() -> None:
 
     result = engine.query(statement)
     assert isinstance(result, PaginatedResult)
+    print(result.data[0].model_dump_json(indent=2))
 
 
 if __name__ == "__main__":

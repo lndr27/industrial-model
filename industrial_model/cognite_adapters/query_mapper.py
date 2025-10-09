@@ -22,7 +22,7 @@ from cognite.client.data_classes.data_modeling.views import (
 
 from industrial_model.constants import EDGE_MARKER, MAX_LIMIT, NESTED_SEP
 from industrial_model.models import TViewInstance, get_schema_properties
-from industrial_model.statements import Statement
+from industrial_model.statements import BaseStatementValues, Statement
 
 from .filter_mapper import (
     FilterMapper,
@@ -205,3 +205,30 @@ class QueryMapper:
                 select_[property_key] = self._get_select(property.source, props)
 
         return select_properties
+
+    def _include_pre_clause(
+        self,
+        root_view: View,
+        root_node: str,
+        statement_values: BaseStatementValues,
+        with_: dict[str, ResultSetExpression],
+    ):
+        if not statement_values.pre_clause:
+            return
+
+        column, expression = statement_values.pre_clause
+        prop = root_view.properties[column.property]
+
+        # Edge Connection
+        assert isinstance(prop, EdgeConnection)
+        edge_view = self._view_mapper.get_view(prop.source.external_id)
+        with_["pre"] = EdgeResultSetExpression(
+            filter=filters.Equals(["edge", "type"], prop.type.dump()),
+            direction=prop.direction,
+            node_filter=filters.And(*self._filter_mapper.map(expression, edge_view)),
+        )
+
+        root_with = with_[root_node]
+        assert isinstance(root_with, NodeResultSetExpression)
+        root_with.from_ = "pre"
+        root_with.chain_to = "source" if prop.direction == "inwards" else "destination"

@@ -43,6 +43,7 @@ class RootModel(BaseModel):
         alias_generator=to_camel,
         populate_by_name=True,
         from_attributes=True,
+        extra="ignore",
     )
 
     def get_field_name(self, field_name_or_alias: str) -> str | None:

@@ -85,7 +85,7 @@ def map_nodes_and_edges(
         if entity_type is NodeListWithCursor
         else query_result.get_edges(key).data
         for key, entity_type in result_schema.items()
-        if entity_type is not None
+        if entity_type is not None and key in query_result
     }
 
 
